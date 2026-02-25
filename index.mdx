@@ -1,97 +1,82 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Introduction
+description: "Shadowbook is a proprietary orderbook DEX on Cardano delivering capital-efficient trading with tight spreads and zero-cost limit orders."
 ---
 
-## Setting up
+Shadowbook is a proprietary orderbook decentralized exchange (Prop DEX) on Cardano. Unlike traditional automated market maker (AMM) DEXes, Shadowbook implements a full orderbook matching engine. The protocol allows makers to instantly place/cancel virtual limit orders that have zero on-chain cost. On the other hand, takers get tight spreads and better prices for assets compared to traditional AMMs.
 
-Get your documentation site up and running in minutes.
+Shadowbook's mission is to solve the liquidity problem of the Cardano ecosystem by providing technology for maximum capital efficiency.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+For performance reasons our tech stack is fully in Rust.
 
-## Make it yours
+## The Cardano DeFi problem
 
-Design a docs site that looks great and empowers your users.
+Cardano's smart contract platform doesn't support concentrated liquidity market maker pools or other capital-efficient designs. The market is dominated by constant product AMM DEXes — the least capital-efficient model in DeFi.
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+This creates several compounding issues:
+
+<CardGroup cols={2}>
+  <Card title="Slow price adjustment" icon="clock">
+    Pool prices lag behind actual market movements, creating stale quotes.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Poor execution" icon="chart-line-down">
+    Wide spreads and high slippage mean retail traders get worse prices.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="High fees" icon="coins">
+    Network fees of 1–1.5 ADA per order, plus batcher and DEX fees, make frequent trading expensive.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Fragmented liquidity" icon="puzzle-piece">
+    Liquidity is scattered across multiple pools, venues, and trading pairs.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+Without user segmentation, genuine traders receive the same execution quality as arbitrageurs and trading bots. Loyal Cardano users bear the cost of all these inefficiencies.
 
-Everything you need to create world-class documentation.
+## Shadowbook's solution
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+Shadowbook replaces the AMM model with a hybrid orderbook architecture designed for Cardano's eUTxO ledger.
 
-## Need inspiration?
+### Virtual orderbook for makers
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+Market makers connect directly to the Shadowbook matching engine and place virtual limit orders. These orders live off-chain — they're placed and cancelled instantly with no transaction fees and no on-chain footprint. This removes the cost barrier that prevents active market making on Cardano.
+
+### On-chain settlement for takers
+
+When a taker matches an order, the trade settles on-chain through Shadowbook's smart contracts. Takers submit on-chain orders (limit or market) that the protocol's execution engine fulfills when conditions are met. The on-chain component handles custody, so takers retain full self-custody throughout the process.
+
+### Capital efficiency
+
+By concentrating maker liquidity in a real orderbook rather than spreading it across a bonding curve, Shadowbook delivers:
+
+- **Tighter spreads** — makers quote competitive prices at specific levels instead of relying on a mathematical curve
+- **Lower slippage** — aggregated depth at each price level means larger orders execute with less price impact
+- **Faster price discovery** — makers can update quotes instantly in response to market movements
+
+### Fee structure
+
+| Order type | Execution fee | On-chain cost |
+|------------|---------------|---------------|
+| Market order | 0.6 ADA | Standard network fee |
+| Limit order | 1.8 ADA | Standard network fee |
+| Virtual order (maker) | Free | None |
+| Order cancellation | None | Standard network fee |
+
+### Protocol integration
+
+Shadowbook doesn't operate its own trading interface. Instead, it plugs into existing Cardano infrastructure as a liquidity source:
+
+- **DexHunter** — live integration as a trading venue
+- **Other DEXes and aggregators** — planned future integrations
+
+This means traders access Shadowbook's liquidity through the interfaces they already use, without needing to learn a new platform.
+
+## Start integrating
+
+<CardGroup cols={2}>
+  <Card title="On-chain orders" icon="file-contract" href="/smart-contracts/on-chain-orders">
+    Place limit and market orders through Shadowbook's smart contract.
+  </Card>
+  <Card title="Market API" icon="server" href="/api-reference/overview">
+    Query orderbook state and trading pairs via the read-only HTTP API.
+  </Card>
+</CardGroup>

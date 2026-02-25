@@ -1,0 +1,68 @@
+---
+title: Market API
+description: "Read-only HTTP API for querying the Shadowbook orderbook and trading pair data."
+---
+
+The Market API provides read-only access to Shadowbook's orderbook state and trading pair information.
+
+**Base URL:**
+
+```
+https://api.shadowbook.io/
+```
+
+## Type reference
+
+### Asset identifier
+
+Assets are passed as plain strings in query parameters and returned as strings in responses.
+
+| Asset | Format | Example |
+|-------|--------|---------|
+| ADA (Cardano native) | `"ADA"` | `ADA` |
+| Native token | `"<policy_id_hex>:<asset_name_hex>"` | `279c909f...927a3f:534e454b` |
+
+- `policy_id_hex` — 56 lowercase hex characters (28 bytes)
+- `asset_name_hex` — hex-encoded asset name bytes (variable length, may be empty)
+
+**Examples:**
+
+```
+ADA
+279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f:534e454b
+8db269c3ec630e06ae29f74bc39edd1f87c819f1056206e879a1cd61:dda5fdb1002f7389b33e036b6afee82a27189467772a31503f6185a66cb3d2
+```
+
+### DecimalPrice
+
+A price value stored and transmitted as a decimal number. Serialized via `rust_decimal::Decimal`.
+
+```
+0.00001
+1.5
+100000
+```
+
+Represents a quote/base ratio — how many quote-asset units equal one base-asset unit.
+
+### PriceLevel
+
+A single rung of the orderbook with aggregated liquidity at that price.
+
+```json
+{
+  "price": "0.00001",
+  "accumulated_liquidity": 5000000000
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `price` | `DecimalPrice` | Limit price (quote units per base unit) |
+| `accumulated_liquidity` | `u64` | Total base-asset amount available at this price |
+
+### Error response
+
+```json
+{ "error": "Pair ADA/UNKNOWN not found" }
+```

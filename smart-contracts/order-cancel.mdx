@@ -1,0 +1,77 @@
+---
+title: Order refunds
+description: "How to cancel and refund on-chain orders on Shadowbook."
+---
+
+Orders can be refunded (cancelled) by the user who created them. All ADA from the order — including collateral and execution fees — is returned to the user.
+
+## Contract reference
+
+Use the same contract details from the [on-chain orders](/smart-contracts/on-chain-orders#contract-information) page:
+
+- **Script hash:** `9e130eb0323f31df50bfbb731f35f5a795a630ef727b4ba272460b55`
+- **Reference UTxO:** `2a6b847da15d7bfa3ac23af67590c2d6c98e8b485545d883dd72da322ccfd38e#0`
+- **Script CBOR:** see [contract information](/smart-contracts/on-chain-orders#contract-information)
+
+## Execution units and redeemer
+
+| Parameter | Value |
+|-----------|-------|
+| Memory | 162,000 |
+| Steps | 60,000,000 |
+| Redeemer | `Constr 0 []` |
+| Redeemer CBOR | `d87980` |
+| Required signer | User's payment key hash from `cancelPkh` |
+
+## Transaction structure
+
+**Inputs:**
+
+1. Order UTxO to cancel
+2. User's UTxO for fees
+
+**Input (order UTxO):**
+
+- **Redeemer:** Empty constructor `Constr 0 []` (CBOR: `d87980`)
+- **Required signer:** User's payment key hash (from `cancelPkh` in the datum)
+- **Script reference:** Use the reference UTxO or attach the script CBOR directly
+- **Execution units:** See table above
+
+**Outputs:**
+
+1. User's address with all funds from the refunded order (including collateral)
+2. User's change output (if any)
+
+## Refund flow
+
+<Steps>
+  <Step title="Find order UTxO">
+    Locate the order by its transaction hash and output index.
+  </Step>
+  <Step title="Deserialize datum">
+    Extract the user's address and `cancelPkh` from the order datum.
+  </Step>
+  <Step title="Add order UTxO as input">
+    Include:
+    - Empty redeemer: `Constr 0 []`
+    - Required signer: payment key hash from `cancelPkh`
+    - Script reference or inline script
+    - Execution units from contract info
+  </Step>
+  <Step title="Create output">
+    Send full order value to the user's address.
+  </Step>
+  <Step title="Sign transaction">
+    Sign with the user's payment key.
+  </Step>
+</Steps>
+
+## Important notes
+
+<Note>
+Only the user who created the order can refund it — the transaction must be signed by the key corresponding to `cancelPkh`.
+</Note>
+
+- All ADA from the order (including collateral and fees) is returned to the user
+- The user's address is extracted from the datum `address` field
+- Transaction must be signed by the key corresponding to `cancelPkh`

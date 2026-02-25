@@ -1,0 +1,180 @@
+---
+title: On-chain orders
+description: "Smart contract reference for placing limit and market orders on Shadowbook."
+---
+
+The `onChainOrder` contract handles placing limit and market orders on-chain. Orders are submitted to the contract and executed by the protocol's execution engine when price conditions are met.
+
+<Warning>
+Orders are placed on-chain and require a transaction. The execution engine processes them asynchronously — execution timing depends on batcher availability and market conditions.
+</Warning>
+
+## Contract information
+
+<Tabs>
+  <Tab title="Script hash">
+    ```
+    9e130eb0323f31df50bfbb731f35f5a795a630ef727b4ba272460b55
+    ```
+  </Tab>
+  <Tab title="Reference UTxO">
+    ```typescript
+    {
+      txHash: '2a6b847da15d7bfa3ac23af67590c2d6c98e8b485545d883dd72da322ccfd38e',
+      outputIndex: 0
+    }
+    ```
+  </Tab>
+  <Tab title="Script CBOR">
+    ```
+    5902080101003229800aba2aba1aba0aab9faab9eaab9dab9a488888896600264646644b30013370e900118031baa00289919912cc004c966002601600315980099b8948010c0280062d13370e90011805000a0128b20183754601a00d132330010013756601c601e601e601e601e601e601e60166ea8014896600200314a115980099baf012300b300f0018a518998010011808000a014403515980099b8748000c024dd5000c4cc896600266e1d2000300b3754003133225980099199119801001000912cc00400629422b30013371e6eb8c05000400e2946266004004602a00280790121bac301230133013301330133013301330133013300f37540126eb8c044c048c048c048c048c048c048c048c038dd5002456600266ebcc004c038dd5180098071baa3011300e37540066002601c6ea800a266ebcc044c038dd5001180098071baa0048a50403114a08060c03cdd618079808180818061baa0062301030110018b2014300d300a375400264660020026eb0c038c02cdd5002912cc0040062980103d87a80008992cc004cdd7980818069baa001005899ba548000cc03c0052f5c11330030033011002402c601e002806a29450082010300b001300b300c00130073754005164014601060120026010004601000260066ea802229344d959001130122d87a9f581c5955b1d938f5808537f00a8e252ac63ac853fe8c375cb32bffbcaacdff0001
+    ```
+  </Tab>
+</Tabs>
+
+## Transaction structure
+
+### Inputs
+
+Any user UTxOs to cover:
+
+- Input asset amount (what the user is selling)
+- Transaction fees
+- Order collateral (minimum 2 ADA)
+- Deposit ADA for outputs
+
+### Order output
+
+Send to the script address constructed from the [script hash](#contract-information) and optionally the user's stake credentials.
+
+**Address construction:**
+
+```typescript
+import { credentialsToBech32Address } from '@splashprotocol/sdk';
+
+const SCRIPT_HASH = '9e130eb0323f31df50bfbb731f35f5a795a630ef727b4ba272460b55';
+
+const orderAddress = await credentialsToBech32Address(
+  network,
+  {
+    hash: SCRIPT_HASH,
+    type: 'script',
+  },
+  userStakeCredentials
+    ? {
+        hash: userStakeCredentials,
+        type: 'pubKey',
+      }
+    : undefined
+);
+```
+
+**Output value:**
+
+| Asset | Amount |
+|-------|--------|
+| Input asset | `inputAmount` |
+| ADA (execution fee) | `feePerExStep * (orderType === 'limit' ? 3 : 1)` |
+| ADA (deposit) | `depositAdaForOrder + depositAdaForReceive` |
+| ADA (collateral) | Additional if total &lt; 2 ADA |
+
+Where:
+- `feePerExStep` = `600_000` lovelace (0.6 ADA per execution step)
+- Limit orders require 3x fee (1.8 ADA), market orders 1x fee (0.6 ADA)
+- `depositAdaForOrder` = minimum ADA to store the order UTxO
+- `depositAdaForReceive` = minimum ADA for the user's output after execution
+- Additional collateral added if total &lt; 2 ADA minimum
+
+## Order types
+
+### Limit order
+
+- **Execution fee:** 1.8 ADA (3 x 0.6 ADA)
+- **Beacon prefix:** `0x00`
+- Executes only when market price reaches the specified price
+- Can be cancelled by the user
+
+### Market order
+
+- **Execution fee:** 0.6 ADA (1 x 0.6 ADA)
+- **Beacon prefix:** `0x01`
+- Executes at current market price
+- Can be cancelled by the user
+
+## Deposit ADA calculation
+
+Order output must contain enough ADA to cover:
+
+<Steps>
+  <Step title="Execution fee">
+    Limit order: **1.8 ADA** (3 x 0.6 ADA). Market order: **0.6 ADA** (1 x 0.6 ADA).
+  </Step>
+  <Step title="Minimum UTxO deposit">
+    Calculated based on output value size (input asset + ADA) and datum size (~200–300 bytes). Use Cardano's `minUTxOValue` formula or protocol parameters.
+  </Step>
+  <Step title="Collateral">
+    Minimum total **2 ADA**. If execution fee + UTxO deposit is less than 2 ADA, add the difference.
+  </Step>
+  <Step title="Receiving deposit">
+    ADA needed for the user's output after execution. Depends on expected output asset and address.
+  </Step>
+</Steps>
+
+**Formula:**
+
+```
+Order Output = Input Asset
+             + Execution Fee (0.6 or 1.8 ADA)
+             + UTxO Deposit (calculated)
+             + Additional Collateral (if needed to reach 2 ADA minimum)
+             + Receiving Deposit (for user's output)
+```
+
+**Example** — Buy order, 50 ADA for tokens (market):
+
+| Component | Amount |
+|-----------|--------|
+| Input asset | 50 ADA |
+| Execution fee | 0.6 ADA |
+| UTxO deposit | ~1.5 ADA |
+| Receiving deposit | ~1.5 ADA |
+| Additional collateral | 0 ADA (total already > 2) |
+| **Total** | **~53.6 ADA** |
+
+## Transaction building flow
+
+<Steps>
+  <Step title="Select input UTxOs">
+    Cover all costs: input amount + fees + deposits.
+  </Step>
+  <Step title="Extract user credentials">
+    Payment and stake key hashes from the user's address.
+  </Step>
+  <Step title="Calculate order index">
+    Position of the order output in the transaction.
+  </Step>
+  <Step title="Build datum">
+    Construct all fields except beacon. See [datum building](/smart-contracts/datum-building).
+  </Step>
+  <Step title="Calculate beacon">
+    Use the first input UTxO reference and order index. See [beacon calculation](/smart-contracts/datum-building#beacon-calculation).
+  </Step>
+  <Step title="Serialize and assemble">
+    Serialize datum with the calculated beacon to CBOR. Calculate deposits, add collateral if needed, create the order output with script hash, stake credentials, value, and datum. Add a change output for the user.
+  </Step>
+</Steps>
+
+See a [real transaction example on CardanoScan](https://cardanoscan.io/transaction/c77d82d0592252d86a175576665bcf92cbf689ddf92a496cd106cdad75930e79?tab=utxo).
+
+## Important notes
+
+<Note>
+The beacon calculation uses the first transaction input. Add the UTxO to transaction inputs before calculating the beacon.
+</Note>
+
+1. **Order index** must match the actual index of the order output in the transaction outputs array.
+2. **Minimum collateral** — total deposits must be at least 2 ADA. Additional collateral is added automatically if needed.
+3. **Stake credentials** are optional but recommended for proper fund ownership and staking rewards.
+4. **Price inversion** — buy orders require inverted price ratios (`denom/num` instead of `num/denom`).
+5. **Asset format** — ADA is `["", ""]`, tokens are `[policyId, tokenName]` in hex.
+6. **Execution** — orders are executed by protocol batchers when conditions are met.

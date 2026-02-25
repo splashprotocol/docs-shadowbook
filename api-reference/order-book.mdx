@@ -1,0 +1,73 @@
+---
+title: Get order book
+description: "Retrieve a snapshot of the orderbook for a trading pair."
+api: "GET /trading-view/order-book"
+---
+
+Returns a snapshot of the orderbook for a trading pair, including price levels on both sides and the current spot price.
+
+## Query parameters
+
+<ParamField query="base" type="string" required>
+  Base asset identifier. Use `ADA` for Cardano's native asset, or `<policy_id_hex>:<asset_name_hex>` for native tokens.
+</ParamField>
+
+<ParamField query="quote" type="string" required>
+  Quote asset identifier. Same format as `base`.
+</ParamField>
+
+## Response
+
+<ResponseField name="base" type="string">
+  Base asset identifier (echoed from query).
+</ResponseField>
+
+<ResponseField name="quote" type="string">
+  Quote asset identifier (echoed from query).
+</ResponseField>
+
+<ResponseField name="spot" type="DecimalPrice | null">
+  Most recent execution price. `null` if no trades have occurred.
+</ResponseField>
+
+<ResponseField name="bids" type="PriceLevel[]">
+  Buy-side levels, highest price first.
+</ResponseField>
+
+<ResponseField name="asks" type="PriceLevel[]">
+  Sell-side levels, lowest price first.
+</ResponseField>
+
+## Example request
+
+```bash
+curl "https://api.shadowbook.io/trading-view/order-book?base=0691b2fecca1ac4f53cb6dfb00b7013e561d1f34403b957cbb5af1fa:4e49474854&quote=ADA"
+```
+
+<Tabs>
+  <Tab title="200 OK">
+    ```json
+    {
+      "base": "ADA",
+      "quote": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f:534e454b",
+      "spot": "0.00001",
+      "bids": [
+        { "price": "0.0000110", "accumulated_liquidity": 3000000000 },
+        { "price": "0.0000100", "accumulated_liquidity": 1500000000 },
+        { "price": "0.0000090", "accumulated_liquidity": 500000000 }
+      ],
+      "asks": [
+        { "price": "0.0000120", "accumulated_liquidity": 2000000000 },
+        { "price": "0.0000130", "accumulated_liquidity": 800000000 }
+      ]
+    }
+    ```
+  </Tab>
+  <Tab title="404 Not Found">
+    ```json
+    {
+      "error": "Pair ADA/UNKNOWN not found"
+    }
+    ```
+  </Tab>
+</Tabs>

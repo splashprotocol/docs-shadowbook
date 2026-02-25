@@ -1,0 +1,259 @@
+---
+title: Datum building
+description: "How to construct the order datum, calculate prices, serialize addresses, and compute order beacons."
+---
+
+Every on-chain order carries a datum that encodes the order parameters. This page covers how to build each field.
+
+## Datum structure
+
+```typescript
+import { Datum } from '@splashprotocol/sdk';
+
+const orderDatum = Datum.constr(0, {
+  type: Datum.bytes(),           // "09" (order type identifier)
+  address: Datum.constr(0, {
+    paymentCredentials: Datum.anyOf([
+      Datum.constr(0, {
+        paymentKeyHash: Datum.bytes(),
+      }),
+      Datum.constr(1, {
+        scriptHash: Datum.bytes(),
+      }),
+    ]),
+    stakeCredentials: Datum.anyOf([
+      Datum.constrAnyOf(0, [
+        Datum.constrAnyOf(0, [
+          Datum.constr(0, {
+            paymentKeyHash: Datum.bytes(),
+          }),
+          Datum.constr(1, {
+            scriptHash: Datum.bytes(),
+          }),
+        ]),
+        Datum.constr(1, {
+          slotNumber: Datum.integer(),
+          transactionIndex: Datum.integer(),
+          certificateIndex: Datum.integer(),
+        }),
+      ]),
+      Datum.constr(1, {}),       // no stake credentials
+    ]),
+  }),
+  inputAsset: Datum.list(Datum.bytes()),    // [policyId, tokenName]
+  inputAmount: Datum.integer(),             // amount to sell
+  feePerExStep: Datum.integer(),            // 600_000
+  outputAsset: Datum.list(Datum.bytes()),   // [policyId, tokenName]
+  price: Datum.list(Datum.integer()),       // [numerator, denominator]
+  cancelPkh: Datum.bytes(),                 // user payment key hash
+  beacon: Datum.bytes(),                    // order beacon (20 bytes)
+});
+```
+
+**SDK type export:**
+
+```typescript
+import { Datum, InferDatum } from '@splashprotocol/sdk';
+
+export type OnChainOrderDatum = InferDatum<typeof orderDatum>;
+```
+
+## Field reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | bytes | `"09"` in hex format |
+| `address` | constr | User's address for receiving funds after execution |
+| `inputAsset` | list | `[policyId, tokenName]` — what the user is selling. ADA = `["", ""]` |
+| `inputAmount` | integer | Amount of input asset in base units |
+| `feePerExStep` | integer | `600000` (0.6 ADA) |
+| `outputAsset` | list | `[policyId, tokenName]` — what the user wants to receive |
+| `price` | list | `[numerator, denominator]` — price ratio |
+| `cancelPkh` | bytes | User's payment key hash for order cancellation |
+| `beacon` | bytes | 20-byte order identifier |
+
+## Price calculation
+
+Price is the `output / input` ratio, stored as `[numerator, denominator]`.
+
+<Tabs>
+  <Tab title="Buy order">
+    Buying token with ADA:
+    - Input: ADA
+    - Output: Token
+    - Price: `tokenAmount / adaAmount` = `[tokenAmount, adaAmount]`
+
+    **Example:** Buy 100 tokens for 50 ADA → `[100, 50]` = 2 tokens per ADA
+  </Tab>
+  <Tab title="Sell order">
+    Selling token for ADA:
+    - Input: Token
+    - Output: ADA
+    - Price: `adaAmount / tokenAmount` = `[adaAmount, tokenAmount]`
+
+    **Example:** Sell 100 tokens for 50 ADA → `[50, 100]` = 0.5 ADA per token
+  </Tab>
+  <Tab title="Market order (infinite slippage)">
+    Set `numerator = 1` to accept any price:
+
+    Price: `[1, denominator]`
+  </Tab>
+</Tabs>
+
+## Input amount
+
+- **Buy order:** `inputAmount` = ADA amount the user is willing to spend
+- **Sell order:** `inputAmount` = token amount the user is selling
+
+## Address serialization
+
+Extract payment and stake credentials from the user's Cardano address:
+
+- **Payment credentials** (required): user's payment key hash
+- **Stake credentials** (optional): user's stake key hash
+
+```json
+{
+  "paymentCredentials": {
+    "paymentKeyHash": "<hex-encoded payment key hash>"
+  },
+  "stakeCredentials": {
+    "paymentKeyHash": "<hex-encoded stake key hash>"
+  }
+}
+```
+
+If the user has no stake credentials, use an empty constructor for `stakeCredentials`.
+
+## Beacon calculation
+
+The order beacon is a 20-byte unique identifier that prevents beacon collisions.
+
+**Structure:**
+- Byte 0: order type (`0` = limit, `1` = market)
+- Bytes 1–19: first 19 bytes of a blake2b-224 hash
+
+<Warning>
+All numeric indices must be encoded as **big-endian** uint64 (8 bytes).
+</Warning>
+
+### Algorithm
+
+<Steps>
+  <Step title="Create empty beacon">
+    28 bytes of zeros: `0000...0000`
+  </Step>
+  <Step title="Serialize datum with empty beacon">
+    Convert the datum (with empty beacon) to CBOR format.
+  </Step>
+  <Step title="Hash the datum">
+    Apply blake2b-224 to the serialized datum CBOR bytes.
+  </Step>
+  <Step title="Build beacon preimage">
+    Concatenate in order:
+    - Transaction hash (32 bytes) of one of the transaction inputs
+    - Output index (8 bytes, big-endian uint64)
+    - Order index (8 bytes, big-endian uint64)
+    - Datum hash (28 bytes) from step 3
+  </Step>
+  <Step title="Calculate final beacon">
+    Apply blake2b-224 to the preimage, take the first 19 bytes, and prefix with the order type byte (`0` or `1`). Result: 20 bytes.
+  </Step>
+</Steps>
+
+### Implementation
+
+```typescript
+import { blake2b224, bytesToHex, hexToBytes } from '@splashprotocol/sdk';
+import { Uint64BE } from 'int64-buffer';
+
+const EMPTY_BEACON = bytesToHex(Uint8Array.from(new Array(28).fill(0)));
+
+// Step 1: Serialize datum with empty beacon
+const datumWithEmptyBeacon = await orderDatum.serialize({
+  ...datumObject,
+  beacon: EMPTY_BEACON,
+});
+
+// Step 2: Hash datum
+const datumHash = await blake2b224(
+  C.PlutusData.from_cbor_hex(datumWithEmptyBeacon).to_cbor_bytes()
+);
+
+// Step 3: Build beacon preimage
+const beaconPreimage = Uint8Array.from([
+  ...C.TransactionHash.from_hex(outputReference.txHash).to_raw_bytes(),
+  ...new Uint64BE(Number(outputReference.index)).toArray(),
+  ...new Uint64BE(Number(orderIndex)).toArray(),
+  ...hexToBytes(datumHash),
+]);
+
+// Step 4: Hash and prefix with order type
+const beacon = bytesToHex(
+  new Uint8Array([
+    orderType === 'limit' ? 0 : 1,
+    ...hexToBytes(await blake2b224(beaconPreimage)).slice(0, 19),
+  ])
+);
+```
+
+Where:
+- `outputReference` — one of the transaction inputs (UTxO reference)
+- `orderIndex` — index of the order output in the transaction (`BigInt`)
+- `orderType` — `'limit'` or `'market'`
+
+## Real example
+
+Buy order: 50 ADA for NIGHT token at ~4.2 tokens per ADA.
+
+<Expandable title="Full datum JSON">
+```json
+{
+  "constructor": "0",
+  "fields": [
+    { "bytes": "09" },
+    {
+      "constructor": "0",
+      "fields": [
+        {
+          "constructor": "0",
+          "fields": [
+            { "bytes": "3533ded9539c6ed7dce55b29a5fd341d78d3fca4bebabc4fb9f1894b" }
+          ]
+        },
+        {
+          "constructor": "0",
+          "fields": [
+            {
+              "constructor": "0",
+              "fields": [
+                {
+                  "constructor": "0",
+                  "fields": [
+                    { "bytes": "f985dec9000fe612fc20520200f91df5520aa5444059a5cebe411295" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    { "list": [{ "bytes": "" }, { "bytes": "" }] },
+    { "int": "50000000" },
+    { "int": "600000" },
+    {
+      "list": [
+        { "bytes": "0691b2fecca1ac4f53cb6dfb00b7013e561d1f34403b957cbb5af1fa" },
+        { "bytes": "4e49474854" }
+      ]
+    },
+    { "list": [{ "int": "209790827" }, { "int": "50000000" }] },
+    { "bytes": "3533ded9539c6ed7dce55b29a5fd341d78d3fca4bebabc4fb9f1894b" },
+    { "bytes": "016b44032ba4b5e00b0e883e37b20e66e6ba34ca" }
+  ]
+}
+```
+</Expandable>
+
+[View transaction on CardanoScan](https://cardanoscan.io/transaction/c77d82d0592252d86a175576665bcf92cbf689ddf92a496cd106cdad75930e79?tab=utxo)
