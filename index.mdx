@@ -1,5 +1,5 @@
 ---
-title: Introduction
+title: "Introduction"
 description: "Shadowbook a proprietary order book DEX"
 ---
 
@@ -11,7 +11,7 @@ For performance reasons our tech stack is fully in Rust.
 
 ## Cardano liquidity problem
 
-Cardano's smart contract platform doesn't support concentrated liquidity market maker pools or other capital-efficient designs. The market is dominated by constant product AMM DEXes — the least capital-efficient model in DeFi. 
+Cardano's smart contract platform doesn't support concentrated liquidity market maker pools or other capital-efficient designs. The market is dominated by constant product AMM DEXes — the least capital-efficient model in DeFi.
 
 This creates several compounding issues:
 
@@ -50,14 +50,3 @@ Shadowbook doesn't operate its own trading interface. Instead, it plugs into exi
 - **Other DEXes and aggregators** — planned future integrations
 
 This means traders access Shadowbook's liquidity through the interfaces they already use, without needing to learn a new platform.
-
-## Start integrating
-
-<CardGroup cols={2}>
-  <Card title="On-chain orders" icon="file-contract" href="/on-chain-interactions/limit-order">
-    Place limit and market orders through Shadowbook's smart contract.
-  </Card>
-  <Card title="Market API" icon="server" href="/api-docs/overview">
-    Query orderbook state and trading pairs via the read-only HTTP API.
-  </Card>
-</CardGroup>
