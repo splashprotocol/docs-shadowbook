@@ -8,197 +8,68 @@ Every on-chain order carries a datum that encodes the order parameters. This pag
 ## Datum structure
 
 ```typescript
-import { Data } from "@lucid-evolution/lucid";
+import { Datum } from '@---/sdk';
 
-const LimitOrderConfigSchema = {
-  title: "LimitOrderConfig",
-  anyOf: [
-    {
-      title: "LimitOrderConfig",
-      dataType: "constructor",
-      index: 0,
-      fields: [
-        { dataType: "bytes", title: "tag" },
-        {
-          title: "redeemerAddress",
-          anyOf: [
-            {
-              title: "Address",
-              dataType: "constructor",
-              index: 0,
-              fields: [
-                {
-                  title: "paymentCredential",
-                  anyOf: [
-                    {
-                      title: "VerificationKey",
-                      dataType: "constructor",
-                      index: 0,
-                      fields: [{ dataType: "bytes" }],
-                    },
-                    {
-                      title: "Script",
-                      dataType: "constructor",
-                      index: 1,
-                      fields: [{ dataType: "bytes" }],
-                    },
-                  ],
-                },
-                {
-                  title: "stakeCredential",
-                  anyOf: [
-                    {
-                      title: "Some",
-                      dataType: "constructor",
-                      index: 0,
-                      fields: [
-                        {
-                          anyOf: [
-                            {
-                              title: "Inline",
-                              dataType: "constructor",
-                              index: 0,
-                              fields: [
-                                {
-                                  anyOf: [
-                                    {
-                                      title: "VerificationKey",
-                                      dataType: "constructor",
-                                      index: 0,
-                                      fields: [{ dataType: "bytes" }],
-                                    },
-                                    {
-                                      title: "Script",
-                                      dataType: "constructor",
-                                      index: 1,
-                                      fields: [{ dataType: "bytes" }],
-                                    },
-                                  ],
-                                },
-                              ],
-                            },
-                            {
-                              title: "Pointer",
-                              dataType: "constructor",
-                              index: 1,
-                              fields: [
-                                { dataType: "integer", title: "slotNumber" },
-                                { dataType: "integer", title: "transactionIndex" },
-                                { dataType: "integer", title: "certificateIndex" },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                    {
-                      title: "None",
-                      dataType: "constructor",
-                      index: 1,
-                      fields: [],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          title: "input",
-          dataType: "list",
-          items: [
-            { title: "PolicyId", dataType: "bytes" },
-            { title: "AssetName", dataType: "bytes" },
-          ],
-        },
-        { dataType: "integer", title: "tradableInput" },
-        { dataType: "integer", title: "feePerExStep" },
-        {
-          title: "output",
-          dataType: "list",
-          items: [
-            { title: "PolicyId", dataType: "bytes" },
-            { title: "AssetName", dataType: "bytes" },
-          ],
-        },
-        {
-          title: "basePrice",
-          dataType: "list",
-          items: [{ dataType: "integer" }, { dataType: "integer" }],
-        },
-        { title: "cancellationPkh", dataType: "bytes" },
-        { dataType: "bytes", title: "beacon" },
-      ],
-    },
-  ],
-} as const;
+const orderDatum = Datum.constr(0, {
+  type: Datum.bytes(),           // "09" (order type identifier)
+  address: Datum.constr(0, {
+    paymentCredentials: Datum.anyOf([
+      Datum.constr(0, {
+        paymentKeyHash: Datum.bytes(),
+      }),
+      Datum.constr(1, {
+        scriptHash: Datum.bytes(),
+      }),
+    ]),
+    stakeCredentials: Datum.anyOf([
+      Datum.constrAnyOf(0, [
+        Datum.constrAnyOf(0, [
+          Datum.constr(0, {
+            paymentKeyHash: Datum.bytes(),
+          }),
+          Datum.constr(1, {
+            scriptHash: Datum.bytes(),
+          }),
+        ]),
+        Datum.constr(1, {
+          slotNumber: Datum.integer(),
+          transactionIndex: Datum.integer(),
+          certificateIndex: Datum.integer(),
+        }),
+      ]),
+      Datum.constr(1, {}),       // no stake credentials
+    ]),
+  }),
+  inputAsset: Datum.list(Datum.bytes()),    // [policyId, tokenName]
+  inputAmount: Datum.integer(),             // amount to sell
+  feePerExStep: Datum.integer(),            // 600_000
+  outputAsset: Datum.list(Datum.bytes()),   // [policyId, tokenName]
+  price: Datum.list(Datum.integer()),       // [numerator, denominator]
+  cancelPkh: Datum.bytes(),                 // user payment key hash
+  beacon: Datum.bytes(),                    // order beacon (20 bytes)
+});
+```
 
-type BuildDatumParams = {
-  paymentKeyHash: string;
-  stakeKeyHash: string;
-  input: [string, string];
-  tradableInput: bigint;
-  output: [string, string];
-  basePrice: [bigint, bigint];
-  cancellationPkh: string;
-  beacon: string;
-  feePerExStep?: bigint;
-  tag?: string;
-};
+**SDK type export:**
 
-const buildDatum = ({
-  paymentKeyHash,
-  stakeKeyHash,
-  input,
-  tradableInput,
-  output,
-  basePrice,
-  cancellationPkh,
-  beacon,
-  feePerExStep = 600000n,
-  tag = "09",
-}: BuildDatumParams) => {
-  const datum = Data.to(
-    {
-      tag,
-      redeemerAddress: {
-        paymentCredential: {
-          VerificationKey: [paymentKeyHash],
-        },
-        stakeCredential: {
-          Inline: [
-            {
-              VerificationKey: [stakeKeyHash],
-            },
-          ],
-        },
-      },
-      input,
-      tradableInput,
-      feePerExStep,
-      output,
-      basePrice,
-      cancellationPkh,
-      beacon,
-    },
-    LimitOrderConfigSchema
-  );
-  return datum;
-};
+```typescript
+import { Datum, InferDatum } from '@---/sdk';
+
+export type OnChainOrderDatum = InferDatum<typeof orderDatum>;
 ```
 
 ## Field reference
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `tag` | bytes | `"09"` in hex format |
-| `redeemerAddress` | constr | User's address for receiving funds after execution |
-| `input` | list | `[policyId, tokenName]` — what the user is selling. ADA = `["", ""]` |
-| `tradableInput` | integer | Amount of input asset in base units |
+| `type` | bytes | `"09"` in hex format |
+| `address` | constr | User's address for receiving funds after execution |
+| `inputAsset` | list | `[policyId, tokenName]` — what the user is selling. ADA = `["", ""]` |
+| `inputAmount` | integer | Amount of input asset in base units |
 | `feePerExStep` | integer | `600000` (0.6 ADA) |
-| `output` | list | `[policyId, tokenName]` — what the user wants to receive |
-| `basePrice` | list | `[numerator, denominator]` — price ratio |
-| `cancellationPkh` | bytes | User's payment key hash for order cancellation |
+| `outputAsset` | list | `[policyId, tokenName]` — what the user wants to receive |
+| `price` | list | `[numerator, denominator]` — price ratio |
+| `cancelPkh` | bytes | User's payment key hash for order cancellation |
 | `beacon` | bytes | 20-byte order identifier |
 
 ## Price calculation
@@ -231,8 +102,28 @@ Price is the `output / input` ratio, stored as `[numerator, denominator]`.
 
 ## Input amount
 
-- **Buy order:** `tradableInput` = ADA amount the user is willing to spend
-- **Sell order:** `tradableInput` = token amount the user is selling
+- **Buy order:** `inputAmount` = ADA amount the user is willing to spend
+- **Sell order:** `inputAmount` = token amount the user is selling
+
+## Address serialization
+
+Extract payment and stake credentials from the user's Cardano address:
+
+- **Payment credentials** (required): user's payment key hash
+- **Stake credentials** (optional): user's stake key hash
+
+```json
+{
+  "paymentCredentials": {
+    "paymentKeyHash": "<hex-encoded payment key hash>"
+  },
+  "stakeCredentials": {
+    "paymentKeyHash": "<hex-encoded stake key hash>"
+  }
+}
+```
+
+If the user has no stake credentials, use an empty constructor for `stakeCredentials`.
 
 ## Beacon calculation
 
@@ -273,46 +164,35 @@ All numeric indices must be encoded as **big-endian** uint64 (8 bytes).
 ### Implementation
 
 ```typescript
-import { Data, fromHex, toHex, CML, } from "@lucid-evolution/lucid";
-import { blake2b } from "hash-wasm";
-import { Uint64BE } from "int64-buffer";
+import { blake2b224, bytesToHex, hexToBytes } from '@---/sdk';
+import { Uint64BE } from 'int64-buffer';
 
-const EMPTY_BEACON = toHex(new Uint8Array(28).fill(0));
+const EMPTY_BEACON = bytesToHex(Uint8Array.from(new Array(28).fill(0)));
 
-// Step 1: Build datum with empty beacon (same shape as order datum, beacon = EMPTY_BEACON), serialize with LimitOrderConfigSchema
-const orderDatumFields = {
-  // All order datum fields except beacon (tag, redeemerAddress, input, tradableInput, feePerExStep, output, basePrice, cancellationPkh)
-  ...buildDatumInput,
-};
-const orderDatumFieldsWithEmptyBeacon = {
-  ...orderDatumFields,
+// Step 1: Serialize datum with empty beacon
+const datumWithEmptyBeacon = await orderDatum.serialize({
+  ...datumObject,
   beacon: EMPTY_BEACON,
-};
-const datumCborHex = Data.to(orderDatumFieldsWithEmptyBeacon, LimitOrderConfigSchema, {
-  canonical: true,
 });
-const datumCborBytes = CML.PlutusData.from_cbor_hex(datumCborHex).to_cbor_bytes();
 
-// Step 2: Hash datum (blake2b-224 over serialized CBOR bytes)
-const datumHashHex = await blake2b(datumCborBytes, 224);
-const datumHash = fromHex(datumHashHex);
+// Step 2: Hash datum
+const datumHash = await blake2b224(
+  C.PlutusData.from_cbor_hex(datumWithEmptyBeacon).to_cbor_bytes()
+);
 
-// Step 3: Beacon preimage (txHash 32 bytes + outputIndex 8 BE + orderIndex 8 BE + datumHash 28 bytes)
-const txHashBytes = fromHex(outputReference.txHash);
-const beaconPreimage = new Uint8Array([
-  ...txHashBytes,
-  ...new Uint64BE(Number(outputReference.outputIndex)).toArray(),
+// Step 3: Build beacon preimage
+const beaconPreimage = Uint8Array.from([
+  ...C.TransactionHash.from_hex(outputReference.txHash).to_raw_bytes(),
+  ...new Uint64BE(Number(outputReference.index)).toArray(),
   ...new Uint64BE(Number(orderIndex)).toArray(),
-  ...datumHash,
+  ...hexToBytes(datumHash),
 ]);
 
-// Step 4: Hash and prefix with order type (first 19 bytes of blake2b-224)
-const beaconHashHex = await blake2b(beaconPreimage, 224);
-const beaconHashFirst19 = fromHex(beaconHashHex.slice(0, 38));
-const beacon = toHex(
+// Step 4: Hash and prefix with order type
+const beacon = bytesToHex(
   new Uint8Array([
-    orderType === "limit" ? 0 : 1,
-    ...beaconHashFirst19,
+    orderType === 'limit' ? 0 : 1,
+    ...hexToBytes(await blake2b224(beaconPreimage)).slice(0, 19),
   ])
 );
 ```
@@ -321,7 +201,6 @@ Where:
 - `outputReference` — one of the transaction inputs (UTxO reference)
 - `orderIndex` — index of the order output in the transaction (`BigInt`)
 - `orderType` — `'limit'` or `'market'`
-
 
 ## Real example
 

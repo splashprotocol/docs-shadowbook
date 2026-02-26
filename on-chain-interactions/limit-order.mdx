@@ -51,25 +51,22 @@ Send to the script address constructed from the [script hash](#contract-informat
 **Address construction:**
 
 ```typescript
-import {
-  credentialToAddress,
-  getAddressDetails,
-  scriptHashToCredential,
-} from "@lucid-evolution/lucid";
+import { credentialsToBech32Address } from '@---/sdk';
 
-// See Contract Information > Script Hash
-const SCRIPT_HASH = /* script hash from above */;
+const SCRIPT_HASH = '9e130eb0323f31df50bfbb731f35f5a795a630ef727b4ba272460b55';
 
-const paymentCredential = scriptHashToCredential(SCRIPT_HASH);
-
-const userAddress = "addr1...";
-const addressDetails = getAddressDetails(userAddress);
-const stakeCredential = addressDetails.type === "Base" ? addressDetails.stakeCredential : undefined;
-
-const orderAddress = credentialToAddress(
-  lucid.network,
-  paymentCredential,
-  stakeCredential
+const orderAddress = await credentialsToBech32Address(
+  network,
+  {
+    hash: SCRIPT_HASH,
+    type: 'script',
+  },
+  userStakeCredentials
+    ? {
+        hash: userStakeCredentials,
+        type: 'pubKey',
+      }
+    : undefined
 );
 ```
 
@@ -77,7 +74,7 @@ const orderAddress = credentialToAddress(
 
 | Asset | Amount |
 |-------|--------|
-| Input asset | `tradableInput` |
+| Input asset | `inputAmount` |
 | ADA (execution fee) | `feePerExStep * (orderType === 'limit' ? 3 : 1)` |
 | ADA (deposit) | `depositAdaForOrder + depositAdaForReceive` |
 | ADA (collateral) | Additional if total &lt; 2 ADA |
