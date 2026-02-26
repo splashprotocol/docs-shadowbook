@@ -18,12 +18,12 @@ Orders are placed on-chain and require a transaction. The execution engine proce
 | Beacon prefix | `0x01` | `0x00` |
 | Fills when | Next available batcher run | Market price reaches your price |
 
-## Price field
+## Base price field
 
-Set the `price` field in the datum to accept any price:
+Set the `basePrice` field in the datum to accept any price:
 
 ```typescript
-price: [1, denominator]
+basePrice: [1, denominator]
 ```
 
 The `numerator = 1` signals infinite slippage — the order fills regardless of the current market price.
@@ -33,14 +33,14 @@ The `numerator = 1` signals infinite slippage — the order fills regardless of 
     Buying a token with ADA at any price:
 
     ```typescript
-    price: [1, inputAmount] // e.g. [1, 50_000_000] for a 50 ADA input
+    basePrice: [1, tradableInput] // e.g. [1, 50_000_000] for a 50 ADA input
     ```
   </Tab>
   <Tab title="Sell (token → ADA)">
     Selling a token for ADA at any price:
 
     ```typescript
-    price: [1, inputAmount] // e.g. [1, 100] for 100 tokens input
+    basePrice: [1, tradableInput] // e.g. [1, 100] for 100 tokens input
     ```
   </Tab>
 </Tabs>
@@ -72,7 +72,7 @@ Send to the script address constructed from the [script hash](/on-chain-interact
 
 | Asset | Amount |
 |-------|--------|
-| Input asset | `inputAmount` |
+| Input asset | `tradableInput` |
 | ADA (execution fee) | `0.6 ADA` |
 | ADA (deposit) | `depositAdaForOrder + depositAdaForReceive` |
 | ADA (collateral) | Additional if total &lt; 2 ADA |
@@ -92,10 +92,10 @@ Send to the script address constructed from the [script hash](/on-chain-interact
 
 Build the datum the same way as a limit order, with two differences:
 
-1. Set `price` to `[1, denominator]`
+1. Set `basePrice` to `[1, denominator]`
 2. The beacon prefix byte is `0x01` (market)
 
-See [datum building](/on-chain-interactions/datum-building) for field reference, address serialization, and the full beacon algorithm.
+See [datum building](/on-chain-interactions/datum-building) for field reference and the full beacon algorithm.
 
 ## Transaction building flow
 
@@ -110,7 +110,7 @@ See [datum building](/on-chain-interactions/datum-building) for field reference,
     Position of the order output in the transaction.
   </Step>
   <Step title="Build datum">
-    Set `price: [1, inputAmount]` and all other fields except beacon. See [datum building](/on-chain-interactions/datum-building).
+    Set `basePrice: [1, tradableInput]` and all other fields except beacon. See [datum building](/on-chain-interactions/datum-building).
   </Step>
   <Step title="Calculate beacon">
     Use the first input UTxO reference and order index with `orderType = 'market'`. Beacon prefix byte is `0x01`. See [beacon calculation](/on-chain-interactions/datum-building#beacon-calculation).

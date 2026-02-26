@@ -22,7 +22,7 @@ Use the same contract details from the [on-chain orders](/on-chain-interactions/
 | Steps | 60,000,000 |
 | Redeemer | `Constr 0 []` |
 | Redeemer CBOR | `d87980` |
-| Required signer | User's payment key hash from `cancelPkh` |
+| Required signer | User's payment key hash from `cancellationPkh` |
 
 ## Transaction structure
 
@@ -34,7 +34,7 @@ Use the same contract details from the [on-chain orders](/on-chain-interactions/
 **Input (order UTxO):**
 
 - **Redeemer:** Empty constructor `Constr 0 []` (CBOR: `d87980`)
-- **Required signer:** User's payment key hash (from `cancelPkh` in the datum)
+- **Required signer:** User's payment key hash (from `cancellationPkh` in the datum)
 - **Script reference:** Use the reference UTxO or attach the script CBOR directly
 - **Execution units:** See table above
 
@@ -50,12 +50,12 @@ Use the same contract details from the [on-chain orders](/on-chain-interactions/
     Locate the order by its transaction hash and output index.
   </Step>
   <Step title="Deserialize datum">
-    Extract the user's address and `cancelPkh` from the order datum.
+    Extract the user's address and `cancellationPkh` from the order datum.
   </Step>
   <Step title="Add order UTxO as input">
     Include:
     - Empty redeemer: `Constr 0 []`
-    - Required signer: payment key hash from `cancelPkh`
+    - Required signer: payment key hash from `cancellationPkh`
     - Script reference or inline script
     - Execution units from contract info
   </Step>
@@ -70,9 +70,9 @@ Use the same contract details from the [on-chain orders](/on-chain-interactions/
 ## Important notes
 
 <Note>
-Only the user who created the order can cancel it — the transaction must be signed by the key corresponding to `cancelPkh`.
+Only the user who created the order can cancel it — the transaction must be signed by the key corresponding to `cancellationPkh`.
 </Note>
 
 - All ADA from the order (including collateral and fees) is returned to the user
-- The user's address is extracted from the datum `address` field
-- Transaction must be signed by the key corresponding to `cancelPkh`
+- The user's address is extracted from the datum `redeemerAddress` field
+- Transaction must be signed by the key corresponding to `cancellationPkh`
