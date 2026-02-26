@@ -7,7 +7,7 @@ Shadowbook supports two order types. Both are placed on-chain through the same s
 
 ## Limit order
 
-A limit order executes only when the market price reaches the price you specify. You set an exact price ratio in the datum, and the protocol's execution engine fills the order when that price is available.
+A limit order executes only when the market price reaches the price you specify. You set an exact price ratio in the datum, and the protocol fills the order when that price is available.
 
 - **Execution fee:** 1.8 ADA (3 × 0.6 ADA)
 - **Fills when:** market price reaches your specified price
@@ -21,10 +21,10 @@ Limit orders are useful when you want to buy or sell at a specific price rather 
 
 ## Market order
 
-A market order executes at the current market price. You accept any available price by setting an infinite slippage price in the datum, and the order fills on the next batcher run.
+A market order executes at the current market price. You accept any available price by setting an infinite slippage price in the datum, and the order fills on the next matcher run.
 
 - **Execution fee:** 0.6 ADA (1 × 0.6 ADA)
-- **Fills when:** next available batcher run
+- **Fills when:** next available matcher run
 - **Cancellable:** yes, before execution
 
 Market orders are useful when you want immediate execution and don't need a specific price.
@@ -39,7 +39,7 @@ Market orders are useful when you want immediate execution and don't need a spec
 |--|--|--|
 | Price | Specified ratio | Any (infinite slippage) |
 | Execution fee | 1.8 ADA | 0.6 ADA |
-| Fills when | Market reaches your price | Next batcher run |
+| Fills when | Market reaches your price | Next matcher run |
 | Beacon prefix | `0x00` | `0x01` |
 
 ## Cancellation

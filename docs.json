@@ -21,7 +21,8 @@
         "icon": "rocket",
         "pages": [
           "index",
-          "overview/orders"
+          "overview/order-book",
+          "overview/orders" 
         ]
       },
       {
