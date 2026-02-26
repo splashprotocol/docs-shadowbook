@@ -13,13 +13,13 @@ Always read `API.md` before making any changes to `api-docs/`. It contains the a
 
 Each endpoint gets its own MDX file in `api-docs/`. Required frontmatter:
 
-```mdx
+````mdx
 ---
-title: <short action phrase>
-description: "<one sentence>."
+title: SHORT_ACTION_PHRASE
+description: "ONE_SENTENCE."
 api: "GET /trading-view/your-endpoint"
 ---
-```
+````
 
 The `api` field pairs with the `server` in `docs.json` (`https://api.shadowbook.io`). No auth is required — these are public read-only endpoints.
 
@@ -29,25 +29,25 @@ After creating a page, add it to the `"API"` group in `docs.json`.
 
 ### Query parameters
 
-```mdx
+````mdx
 <ParamField query="base" type="string" required>
-  Base asset identifier. Use `ADA` for Cardano's native asset, or `<policy_id_hex>:<asset_name_hex>` for native tokens.
+  Base asset identifier. Use `ADA` for Cardano's native asset, or `POLICY_ID_HEX:ASSET_NAME_HEX` for native tokens.
 </ParamField>
-```
+````
 
 Use `query="…"` for URL query params. Mark all required params with `required`.
 
 ### Response fields
 
-```mdx
+````mdx
 <ResponseField name="spot" type="DecimalPrice | null">
   Most recent execution price. `null` if no trades have occurred.
 </ResponseField>
-```
+````
 
 For nested objects, wrap child fields in `<Expandable>`:
 
-```mdx
+````mdx
 <ResponseField name="pairs" type="PairInfo[]">
   Array of trading pairs.
   <Expandable title="PairInfo fields">
@@ -55,20 +55,20 @@ For nested objects, wrap child fields in `<Expandable>`:
     <ResponseField name="last_spot" type="DecimalPrice | null">…</ResponseField>
   </Expandable>
 </ResponseField>
-```
+````
 
 ### Response codes table
 
 Add a `## Response codes` section (left column) to document status codes and their conditions:
 
-```mdx
+````mdx
 ## Response codes
 
 | Status | Body | Condition |
 |--------|------|-----------|
 | `200 OK` | `GetOrderBookResponse` | Pair exists in the index |
 | `404 Not Found` | `{"error": "..."}` | Pair not found |
-```
+````
 
 Omit the Condition column if there is only one possible status code.
 
@@ -76,11 +76,11 @@ Omit the Condition column if there is only one possible status code.
 
 Use `<RequestExample>` and `<ResponseExample>` to pin examples in the right sidebar. Place these **after** all left-column content.
 
-```mdx
+````mdx
 <RequestExample>
 
 ```bash Request
-curl "https://api.shadowbook.io/trading-view/order-book?base=ADA&quote=<token>"
+curl "https://api.shadowbook.io/trading-view/order-book?base=ADA&quote=TOKEN"
 ```
 
 </RequestExample>
@@ -96,7 +96,7 @@ curl "https://api.shadowbook.io/trading-view/order-book?base=ADA&quote=<token>"
 ```
 
 </ResponseExample>
-```
+````
 
 Each code block title inside `<ResponseExample>` is the HTTP status code (`200`, `404`, etc.). Include one block per possible response code.
 
@@ -117,7 +117,7 @@ These types are defined in `api-docs/overview.mdx` and referenced across endpoin
 | Asset | Format |
 |-------|--------|
 | ADA | `"ADA"` |
-| Native token | `"<policy_id_hex>:<asset_name_hex>"` (56-char policy ID, hex asset name) |
+| Native token | `"POLICY_ID_HEX:ASSET_NAME_HEX"` (56-char policy ID, hex asset name) |
 
 ## Full page example
 

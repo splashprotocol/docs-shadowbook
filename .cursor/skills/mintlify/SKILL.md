@@ -318,6 +318,12 @@ Before submitting:
 * [ ] Run `mint broken-links` to check links
 * [ ] Run `mint validate` to find any errors
 
+### 7. Final link check (required)
+
+**Always run `mint broken-links` as the last action before ending a session.** Fix every reported broken link before finishing — do not leave broken links for the user to resolve.
+
+If `mint broken-links` reports errors in files you did not touch (pre-existing), flag them to the user rather than silently ignoring them.
+
 ## Edge cases
 
 ### Migrations

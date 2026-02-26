@@ -155,10 +155,10 @@ Order Output = Input Asset
     Position of the order output in the transaction.
   </Step>
   <Step title="Build datum">
-    Construct all fields except beacon. See [datum building](/smart-contracts/datum-building).
+    Construct all fields except beacon. See [datum building](/on-chain-interactions/datum-building).
   </Step>
   <Step title="Calculate beacon">
-    Use the first input UTxO reference and order index. See [beacon calculation](/smart-contracts/datum-building#beacon-calculation).
+    Use the first input UTxO reference and order index. See [beacon calculation](/on-chain-interactions/datum-building#beacon-calculation).
   </Step>
   <Step title="Serialize and assemble">
     Serialize datum with the calculated beacon to CBOR. Calculate deposits, add collateral if needed, create the order output with script hash, stake credentials, value, and datum. Add a change output for the user.
