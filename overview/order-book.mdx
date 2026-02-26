@@ -3,9 +3,9 @@ title: "Order book"
 description: "How Shadowbook’s On-Chain Order Book Works"
 ---
 
-The order book is a real-time record of all open buy and sell orders for a trading pair. Shadowbook maintains a separate order book for each pair, updated as orders are placed and filled on-chain.
+An order book is a live list of all open buy and sell orders for a trading pair. Shadowbook keeps a separate order book for each pair and updates it as orders are placed, filled, or cancelled.
 
-Every order is an on-chain transaction. When you place an order, you submit a Cardano transaction that locks your funds in the Shadowbook smart contract. The order remains open until the protocol fills it or you cancel it — both of which are also on-chain transactions.
+Every order is an on-chain Cardano transaction. When you place an order, your funds are locked in the Shadowbook smart contract under your terms. The order stays open until it gets filled, or you cancel it. Your funds remain in self-custody.
 
 ## Bids and asks
 
@@ -27,7 +27,7 @@ Each side of the order book is aggregated into price levels. A price level group
 
 ## Spot price
 
-The `spot` field on the order book response is the price of the most recent trade for the pair. It reflects the last execution price, not the current best bid or ask. If no trades have occurred, `spot` is `null`.
+Spot is the price of the last completed trade. It’s not always the same as the current best bid or ask. If no trades happened yet, spot can be null.
 
 ## Reading the order book
 
