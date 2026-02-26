@@ -1,6 +1,6 @@
 ---
-title: Order book
-description: "How Shadowbook's order book represents market depth and price levels."
+title: "Order book"
+description: "How Shadowbook’s On-Chain Order Book Works"
 ---
 
 The order book is a real-time record of all open buy and sell orders for a trading pair. Shadowbook maintains a separate order book for each pair, updated as orders are placed and filled on-chain.
@@ -14,16 +14,16 @@ The order book has two sides:
 - **Bids** — buy orders, sorted from the highest price to the lowest. Buyers are willing to purchase the base asset at or below these prices.
 - **Asks** — sell orders, sorted from the lowest price to the highest. Sellers are willing to sell the base asset at or above these prices.
 
-The gap between the highest bid and the lowest ask is the **spread**.
+The gap between the highest bid and the lowest ask is the spread.
 
 ## Price levels
 
 Each side of the order book is aggregated into price levels. A price level groups all open orders at the same price and reports the total liquidity available at that price.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `price` | `DecimalPrice` | Price ratio (quote per base unit) |
-| `accumulated_liquidity` | `u64` | Total base asset available at this price, in lovelace or token units |
+| Field                   | Type           | Description                                                          |
+| ----------------------- | -------------- | -------------------------------------------------------------------- |
+| `price`                 | `DecimalPrice` | Price ratio (quote per base unit)                                    |
+| `accumulated_liquidity` | `u64`          | Total base asset available at this price, in lovelace or token units |
 
 ## Spot price
 
@@ -37,6 +37,6 @@ To interpret the order book:
 2. The best ask is `asks[0]` — the lowest price a seller will accept.
 3. A trade occurs when a new order crosses the spread (a buy order at or above the best ask, or a sell order at or below the best bid).
 
-<Card title="Get order book" icon="book-open" href="/api-docs/order-book">
+<Card icon="book-open" href="/api-docs/order-book" title="Get order book">
   Fetch a live snapshot of the order book for any trading pair.
 </Card>

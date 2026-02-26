@@ -1,38 +1,34 @@
 ---
 title: "Introduction"
-description: "Shadowbook a proprietary order book DEX"
+description: "Shadowbook is a HFT proprietary orderbook DEX on Cardano blockchain"
 ---
 
-Shadowbook is a proprietary orderbook decentralized exchange (Prop DEX) on Cardano. Unlike traditional automated market maker (AMM) DEXes, Shadowbook implements a full on-chain orderbook matching engine. Makers place and manage limit orders, while takers get tight spreads and better prices for assets compared to traditional AMMs.
+Shadowbook is a proprietary orderbook decentralized exchange on Cardano. Unlike traditional AMM DEXs, Shadowbook implements a full on-chain orderbook. Makers place and manage limit orders, while takers get tight spreads and better prices for assets compared to traditional AMMs.
 
-Shadowbook's mission is to solve the liquidity problem of the Cardano ecosystem by providing technology for maximum capital efficiency.
+Shadowbook's mission is to solve the liquidity problem of the Cardano ecosystem by providing technology for maximum capital efficiency and the best user experience.
 
-For performance reasons our tech stack is fully in Rust.
+For performance reasons, our tech stack is built entirely in Rust.
 
 ## Cardano liquidity problem
 
-Cardano's smart contract platform doesn't support concentrated liquidity market maker pools or other capital-efficient designs. The market is dominated by constant product AMM DEXes — the least capital-efficient model in DeFi.
+Cardano’s smart contract platform does not currently support concentrated liquidity market maker pools or other capital-efficient designs. As a result, the market is dominated by constant-product AMM DEXs. While these models offer several benefits, they are not capital-efficient DeFi mechanisms and require substantial liquidity to function effectively.
 
 This creates several compounding issues:
 
 - **Slow price adjustment** — pool prices lag behind actual market movements, creating stale quotes.
 - **Poor execution** — wide spreads and high slippage mean retail traders get worse prices.
-- **High fees** — network fees of 1–1.5 ADA per order, plus batcher and DEX fees, make frequent trading expensive.
+- **High fees** — network fees of 1–1.5 ADA per order, combined with batcher and DEX fees, make frequent trading expensive.
 - **Fragmented liquidity** — liquidity is scattered across multiple pools, venues, and trading pairs.
 
 Loyal Cardano users bear the cost of all these inefficiencies.
 
 ## Shadowbook's solution
 
-Shadowbook replaces the AMM model with a hybrid orderbook architecture designed for Cardano's eUTxO ledger.
+Shadowbook replaces the AMM model with an orderbook architecture specifically tailored for Cardano's eUTxO ledger.
 
-### Orderbook for makers
+### On-chain settlement
 
-Market makers connect directly to the Shadowbook matching engine and place limit orders. Orders are placed and cancelled instantly, removing the cost barrier that prevents active market making on Cardano.
-
-### On-chain settlement for takers
-
-When a taker matches an order, the trade settles on-chain through Shadowbook's smart contracts. Takers submit on-chain orders (limit or market) that the protocol's execution engine fulfills when conditions are met. The on-chain component handles custody, so takers retain full self-custody throughout the process.
+When a taker matches an order, the trade settles on-chain through Shadowbook’s smart contracts. Takers submit on-chain orders (limit or market), which the protocol executes once the specified conditions are met. The on-chain component manages custody, ensuring that takers retain full self-custody throughout the process. A typical market order, if fulfilled, is returned within the same block, providing users with a bespoke trading experience and maximum control over their funds.
 
 ### Capital efficiency
 
@@ -40,13 +36,13 @@ By concentrating maker liquidity in a real orderbook rather than spreading it ac
 
 - **Tighter spreads** — makers quote competitive prices at specific levels instead of relying on a mathematical curve
 - **Lower slippage** — aggregated depth at each price level means larger orders execute with less price impact
-- **Faster price discovery** — makers can update quotes instantly in response to market movements
+- **Dynamic Price** — The price remains dynamic enabling High-Frequency trading experience on top of Cardano
 
 ### Protocol integration
 
 Shadowbook doesn't operate its own trading interface. Instead, it plugs into existing Cardano infrastructure as a liquidity source:
 
 - **DexHunter** — live integration as a trading venue
-- **Other DEXes and aggregators** — planned future integrations
+- **Other DEXes and aggregators** — open for integrations
 
 This means traders access Shadowbook's liquidity through the interfaces they already use, without needing to learn a new platform.

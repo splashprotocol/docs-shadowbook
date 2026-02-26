@@ -1,5 +1,5 @@
 ---
-title: Order types
+title: "Order types"
 description: "Limit and market orders on the Shadowbook orderbook."
 ---
 
@@ -15,7 +15,9 @@ A limit order executes only when the market price reaches the price you specify.
 
 Limit orders are useful when you want to buy or sell at a specific price rather than accepting whatever the market currently offers.
 
-<Card title="Place a limit order" icon="arrow-right" href="/on-chain-interactions/limit-order">
+> Note: Unlike AMM-based limit orders, Shadowbook executes limit orders as soon as the specified price conditions are met, without requiring the price to move up on the bonding curve to complete the order. This provides users with a superior trading experience and makes Shadowbook as the DEX of choice for placing limit orders.
+
+<Card icon="arrow-right" href="/on-chain-interactions/limit-order" title="Place a limit order">
   Full transaction structure, datum fields, and deposit calculation.
 </Card>
 
@@ -29,23 +31,25 @@ A market order executes at the current market price. You accept any available pr
 
 Market orders are useful when you want immediate execution and don't need a specific price.
 
-<Card title="Place a market order" icon="arrow-right" href="/on-chain-interactions/market-order">
+> Note: While Shadowbook manages slippage more effectively by design than traditional AMM DEXs, users can still control their maximum slippage through the slippage settings available in the aggregator UI they use.
+
+<Card icon="arrow-right" href="/on-chain-interactions/market-order" title="Place a market order">
   Full transaction structure, price field setup, and deposit calculation.
 </Card>
 
 ## Comparison
 
-| | Limit order | Market order |
-|--|--|--|
-| Price | Specified ratio | Any (infinite slippage) |
-| Execution fee | 1.8 ADA | 0.6 ADA |
-| Fills when | Market reaches your price | Next matcher run |
-| Beacon prefix | `0x00` | `0x01` |
+|               | Limit order               | Market order                 |
+| ------------- | ------------------------- | ---------------------------- |
+| Price         | Specified ratio           | Any (slippage managed by UI) |
+| Execution fee | 1.8 ADA                   | 0.6 ADA                      |
+| Fills when    | Market reaches your price | Next matcher run             |
+| Beacon prefix | `0x00`                    | `0x01`                       |
 
 ## Cancellation
 
 Both order types can be cancelled before execution. Cancelling returns all ADA from the order — including collateral and execution fees — to the user.
 
-<Card title="Cancel an order" icon="xmark" href="/on-chain-interactions/order-cancel">
+<Card icon="xmark" href="/on-chain-interactions/order-cancel" title="Cancel an order">
   How to cancel on-chain orders and reclaim funds.
 </Card>
