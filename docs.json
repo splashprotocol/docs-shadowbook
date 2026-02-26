@@ -55,12 +55,7 @@
         "type": "discord",
         "href": "https://discord.gg/example"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Become maker",
-      "href": "https://shadowbook.io/maker"
-    }
+    ]
   },
   "footer": {
     "socials": {
