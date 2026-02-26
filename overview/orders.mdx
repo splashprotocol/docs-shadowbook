@@ -1,0 +1,51 @@
+---
+title: Order types
+description: "Limit and market orders on the Shadowbook orderbook."
+---
+
+Shadowbook supports two order types. Both are placed on-chain through the same smart contract and can be cancelled before execution.
+
+## Limit order
+
+A limit order executes only when the market price reaches the price you specify. You set an exact price ratio in the datum, and the protocol's execution engine fills the order when that price is available.
+
+- **Execution fee:** 1.8 ADA (3 × 0.6 ADA)
+- **Fills when:** market price reaches your specified price
+- **Cancellable:** yes, before execution
+
+Limit orders are useful when you want to buy or sell at a specific price rather than accepting whatever the market currently offers.
+
+<Card title="Place a limit order" icon="arrow-right" href="/on-chain-interactions/limit-order">
+  Full transaction structure, datum fields, and deposit calculation.
+</Card>
+
+## Market order
+
+A market order executes at the current market price. You accept any available price by setting an infinite slippage price in the datum, and the order fills on the next batcher run.
+
+- **Execution fee:** 0.6 ADA (1 × 0.6 ADA)
+- **Fills when:** next available batcher run
+- **Cancellable:** yes, before execution
+
+Market orders are useful when you want immediate execution and don't need a specific price.
+
+<Card title="Place a market order" icon="arrow-right" href="/on-chain-interactions/market-order">
+  Full transaction structure, price field setup, and deposit calculation.
+</Card>
+
+## Comparison
+
+| | Limit order | Market order |
+|--|--|--|
+| Price | Specified ratio | Any (infinite slippage) |
+| Execution fee | 1.8 ADA | 0.6 ADA |
+| Fills when | Market reaches your price | Next batcher run |
+| Beacon prefix | `0x00` | `0x01` |
+
+## Cancellation
+
+Both order types can be cancelled before execution. Cancelling returns all ADA from the order — including collateral and execution fees — to the user.
+
+<Card title="Cancel an order" icon="xmark" href="/on-chain-interactions/order-cancel">
+  How to cancel on-chain orders and reclaim funds.
+</Card>

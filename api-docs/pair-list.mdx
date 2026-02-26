@@ -30,15 +30,23 @@ None.
   </Expandable>
 </ResponseField>
 
-## Example request
+## Response codes
 
-```bash
+| Status | Body |
+|--------|------|
+| `200 OK` | `PairListResponse` |
+
+<RequestExample>
+
+```bash Request
 curl "https://api.shadowbook.io/trading-view/pair-list"
 ```
 
-**Response — 200 OK:**
+</RequestExample>
 
-```json
+<ResponseExample>
+
+```json 200
 {
   "pairs": [
     {
@@ -54,3 +62,5 @@ curl "https://api.shadowbook.io/trading-view/pair-list"
   ]
 }
 ```
+
+</ResponseExample>

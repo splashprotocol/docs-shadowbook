@@ -1,4 +1,8 @@
-# onChainOrder
+---
+title: onChainOrder
+sidebarTitle: onChainOrder contract
+description: "Contract reference for placing limit and market orders on-chain."
+---
 
 Contract for placing limit and market orders.
 
@@ -30,10 +34,10 @@ Contract for placing limit and market orders.
     - [Limit Order](#limit-order)
     - [Market Order](#market-order)
   - [Important Notes](#important-notes)
-  - [Refund](#refund)
+  - [Cancel Order](#cancel-order)
     - [Execution Units \& Redeemer](#execution-units--redeemer)
     - [Transaction Structure](#transaction-structure-1)
-    - [Refund Flow](#refund-flow)
+    - [Cancel Order Flow](#cancel-order-flow)
     - [Important Notes](#important-notes-1)
 
 ## Order
@@ -80,7 +84,7 @@ Send to script address with [script hash](#script-hash) and user's stake credent
 **Address Construction:**
 
 ```typescript
-import { credentialsToBech32Address } from '@splashprotocol/sdk';
+import { credentialsToBech32Address } from '@---/sdk';
 
 // See Contract Information > Script Hash
 const SCRIPT_HASH = /* script hash from above */;
@@ -119,7 +123,7 @@ Where:
 **Datum:**
 
 ```typescript
-import { Datum } from '@splashprotocol/sdk';
+import { Datum } from '@---/sdk';
 
 const orderDatum = Datum.constr(0, {
   type: Datum.bytes(), // "09" (order type identifier)
@@ -271,10 +275,10 @@ Transaction: [c77d82d0592252d86a175576665bcf92cbf689ddf92a496cd106cdad75930e79](
 
 ### SDK Datum Type
 
-For integrators using `@splashprotocol/sdk`:
+For integrators using `@---/sdk`:
 
 ```typescript
-import { Datum, InferDatum } from '@splashprotocol/sdk';
+import { Datum, InferDatum } from '@---/sdk';
 
 export const onChainOrderDatum = Datum.constr(0, {
   type: Datum.bytes(),
@@ -402,7 +406,7 @@ Order beacon is a 20-byte unique identifier that prevents beacon collisions.
 **Implementation example:**
 
 ```typescript
-import { blake2b224, bytesToHex, hexToBytes } from '@splashprotocol/sdk';
+import { blake2b224, bytesToHex, hexToBytes } from '@---/sdk';
 import { Uint64BE } from 'int64-buffer';
 
 const EMPTY_BEACON = bytesToHex(Uint8Array.from(new Array(28).fill(0)));
@@ -528,9 +532,9 @@ See [real transaction example](https://cardanoscan.io/transaction/c77d82d0592252
 
 7. **Execution**: Orders are executed by protocol batchers when conditions are met. Execution timing depends on batcher availability and market conditions.
 
-## Refund
+## Cancel Order
 
-Orders can be refunded by the user who created them.
+Orders can be cancelled by the user who created them.
 
 Use [script hash](#script-hash), [script CBOR](#script-cbor), and [reference UTxO](#reference-utxo) from Contract Information.
 
@@ -559,10 +563,10 @@ Use [script hash](#script-hash), [script CBOR](#script-cbor), and [reference UTx
 
 **Outputs:**
 
-1. User's address with all funds from refunded order (including collateral)
+1. User's address with all funds from cancelled order (including collateral)
 2. User's change output (if any)
 
-### Refund Flow
+### Cancel Order Flow
 
 1. **Find order UTxO** by transaction hash and output index
 2. **Deserialize datum** to extract user's address and `cancelPkh`
@@ -576,7 +580,7 @@ Use [script hash](#script-hash), [script CBOR](#script-cbor), and [reference UTx
 
 ### Important Notes
 
-- Only the user who created the order can refund it (signature verified via `cancelPkh`)
+- Only the user who created the order can cancel it (signature verified via `cancelPkh`)
 - All ADA from order (including collateral and fees) is returned to user
 - User's address is extracted from datum `address` field
 - Transaction must be signed by the key corresponding to `cancelPkh`

@@ -8,7 +8,7 @@ Every on-chain order carries a datum that encodes the order parameters. This pag
 ## Datum structure
 
 ```typescript
-import { Datum } from '@splashprotocol/sdk';
+import { Datum } from '@---/sdk';
 
 const orderDatum = Datum.constr(0, {
   type: Datum.bytes(),           // "09" (order type identifier)
@@ -53,7 +53,7 @@ const orderDatum = Datum.constr(0, {
 **SDK type export:**
 
 ```typescript
-import { Datum, InferDatum } from '@splashprotocol/sdk';
+import { Datum, InferDatum } from '@---/sdk';
 
 export type OnChainOrderDatum = InferDatum<typeof orderDatum>;
 ```
@@ -164,7 +164,7 @@ All numeric indices must be encoded as **big-endian** uint64 (8 bytes).
 ### Implementation
 
 ```typescript
-import { blake2b224, bytesToHex, hexToBytes } from '@splashprotocol/sdk';
+import { blake2b224, bytesToHex, hexToBytes } from '@---/sdk';
 import { Uint64BE } from 'int64-buffer';
 
 const EMPTY_BEACON = bytesToHex(Uint8Array.from(new Array(28).fill(0)));

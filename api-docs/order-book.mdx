@@ -38,36 +38,44 @@ Returns a snapshot of the orderbook for a trading pair, including price levels o
   Sell-side levels, lowest price first.
 </ResponseField>
 
-## Example request
+## Response codes
 
-```bash
+| Status | Body | Condition |
+|--------|------|-----------|
+| `200 OK` | `GetOrderBookResponse` | Pair exists in the index |
+| `404 Not Found` | `{"error": "..."}` | Pair not found |
+
+<RequestExample>
+
+```bash Request
 curl "https://api.shadowbook.io/trading-view/order-book?base=0691b2fecca1ac4f53cb6dfb00b7013e561d1f34403b957cbb5af1fa:4e49474854&quote=ADA"
 ```
 
-<Tabs>
-  <Tab title="200 OK">
-    ```json
-    {
-      "base": "ADA",
-      "quote": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f:534e454b",
-      "spot": "0.00001",
-      "bids": [
-        { "price": "0.0000110", "accumulated_liquidity": 3000000000 },
-        { "price": "0.0000100", "accumulated_liquidity": 1500000000 },
-        { "price": "0.0000090", "accumulated_liquidity": 500000000 }
-      ],
-      "asks": [
-        { "price": "0.0000120", "accumulated_liquidity": 2000000000 },
-        { "price": "0.0000130", "accumulated_liquidity": 800000000 }
-      ]
-    }
-    ```
-  </Tab>
-  <Tab title="404 Not Found">
-    ```json
-    {
-      "error": "Pair ADA/UNKNOWN not found"
-    }
-    ```
-  </Tab>
-</Tabs>
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "base": "ADA",
+  "quote": "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f:534e454b",
+  "spot": "0.00001",
+  "bids": [
+    { "price": "0.0000110", "accumulated_liquidity": 3000000000 },
+    { "price": "0.0000100", "accumulated_liquidity": 1500000000 },
+    { "price": "0.0000090", "accumulated_liquidity": 500000000 }
+  ],
+  "asks": [
+    { "price": "0.0000120", "accumulated_liquidity": 2000000000 },
+    { "price": "0.0000130", "accumulated_liquidity": 800000000 }
+  ]
+}
+```
+
+```json 404
+{
+  "error": "Pair ADA/UNKNOWN not found"
+}
+```
+
+</ResponseExample>

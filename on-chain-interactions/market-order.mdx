@@ -1,0 +1,133 @@
+---
+title: Market order
+description: "How to place a market order on-chain — executes at the current market price with a single execution fee."
+---
+
+A market order executes at the current market price. Unlike a limit order, you accept any available price by setting an infinite slippage price in the datum. Market orders use a single execution fee of 0.6 ADA.
+
+<Warning>
+Orders are placed on-chain and require a transaction. The execution engine processes them asynchronously — execution timing depends on batcher availability and market conditions.
+</Warning>
+
+## How market orders differ from limit orders
+
+| | Market order | Limit order |
+|--|--|--|
+| Price | Any (`[1, denominator]`) | Specified ratio |
+| Execution fee | 0.6 ADA (1 × 0.6 ADA) | 1.8 ADA (3 × 0.6 ADA) |
+| Beacon prefix | `0x01` | `0x00` |
+| Fills when | Next available batcher run | Market price reaches your price |
+
+## Price field
+
+Set the `price` field in the datum to accept any price:
+
+```typescript
+price: [1, denominator]
+```
+
+The `numerator = 1` signals infinite slippage — the order fills regardless of the current market price.
+
+<Tabs>
+  <Tab title="Buy (ADA → token)">
+    Buying a token with ADA at any price:
+
+    ```typescript
+    price: [1, inputAmount] // e.g. [1, 50_000_000] for a 50 ADA input
+    ```
+  </Tab>
+  <Tab title="Sell (token → ADA)">
+    Selling a token for ADA at any price:
+
+    ```typescript
+    price: [1, inputAmount] // e.g. [1, 100] for 100 tokens input
+    ```
+  </Tab>
+</Tabs>
+
+## Execution fee
+
+Market orders require **1 execution step**, so the total fee is:
+
+```
+feePerExStep × 1 = 600_000 lovelace = 0.6 ADA
+```
+
+## Transaction structure
+
+### Inputs
+
+Any user UTxOs to cover:
+
+- Input asset amount (what you are selling)
+- Transaction fees
+- Order collateral (minimum 2 ADA)
+- Deposit ADA for outputs
+
+### Order output
+
+Send to the script address constructed from the [script hash](/on-chain-interactions/limit-order#contract-information) and optionally your stake credentials.
+
+**Output value:**
+
+| Asset | Amount |
+|-------|--------|
+| Input asset | `inputAmount` |
+| ADA (execution fee) | `0.6 ADA` |
+| ADA (deposit) | `depositAdaForOrder + depositAdaForReceive` |
+| ADA (collateral) | Additional if total &lt; 2 ADA |
+
+**Example** — Buy 50 ADA for tokens (market):
+
+| Component | Amount |
+|-----------|--------|
+| Input asset | 50 ADA |
+| Execution fee | 0.6 ADA |
+| UTxO deposit | ~1.5 ADA |
+| Receiving deposit | ~1.5 ADA |
+| Additional collateral | 0 ADA (total already > 2) |
+| **Total** | **~53.6 ADA** |
+
+## Datum
+
+Build the datum the same way as a limit order, with two differences:
+
+1. Set `price` to `[1, denominator]`
+2. The beacon prefix byte is `0x01` (market)
+
+See [datum building](/on-chain-interactions/datum-building) for field reference, address serialization, and the full beacon algorithm.
+
+## Transaction building flow
+
+<Steps>
+  <Step title="Select input UTxOs">
+    Cover all costs: input amount + 0.6 ADA fee + deposits.
+  </Step>
+  <Step title="Extract user credentials">
+    Payment and stake key hashes from your address.
+  </Step>
+  <Step title="Calculate order index">
+    Position of the order output in the transaction.
+  </Step>
+  <Step title="Build datum">
+    Set `price: [1, inputAmount]` and all other fields except beacon. See [datum building](/on-chain-interactions/datum-building).
+  </Step>
+  <Step title="Calculate beacon">
+    Use the first input UTxO reference and order index with `orderType = 'market'`. Beacon prefix byte is `0x01`. See [beacon calculation](/on-chain-interactions/datum-building#beacon-calculation).
+  </Step>
+  <Step title="Serialize and assemble">
+    Serialize datum with the calculated beacon to CBOR. Calculate deposits, add collateral if needed, create the order output, and add a change output.
+  </Step>
+</Steps>
+
+## Important notes
+
+<Note>
+The beacon calculation uses the first transaction input. Add the UTxO to transaction inputs before calculating the beacon.
+</Note>
+
+1. **Order index** must match the actual index of the order output in the transaction outputs array.
+2. **Minimum collateral** — total deposits must be at least 2 ADA.
+3. **Stake credentials** are optional but recommended.
+4. **Asset format** — ADA is `["", ""]`, tokens are `[policyId, tokenName]` in hex.
+5. **Cancellation** — market orders can be cancelled before execution. See [order cancel](/on-chain-interactions/order-cancel).

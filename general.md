@@ -1,4 +1,9 @@
-Shadowbook is a proprietary orderbook decentralized exchange (Prop DEX) on Cardano. Unlike traditional automated market maker (AMM) DEXes, Shadowbook implements a full orderbook matching engine. The protocol allows makers to instantly place/cancel virtual limit orders that have zero on-chain cost. On the other hand, takers get tight spreads and better prices for assets compared to traditional AMMs.
+---
+title: General
+description: "Overview of the Shadowbook protocol and its place in the Cardano DeFi ecosystem."
+---
+
+Shadowbook is a proprietary orderbook decentralized exchange (Prop DEX) on Cardano. Unlike traditional automated market maker (AMM) DEXes, Shadowbook implements a full on-chain orderbook matching engine. Makers place and manage limit orders, while takers get tight spreads and better prices for assets compared to traditional AMMs.
 
 Shadowbook's mission is to solve the liquidity problem of the Cardano ecosystem by providing technology for maximum capital efficiency.
 
@@ -23,11 +28,11 @@ At the end of the day it's the loyal Cardano users who carry all of these ineffi
 
 Shadowbook replaces the AMM model with a hybrid orderbook architecture designed for Cardano's eUTxO ledger. The protocol separates makers and takers into distinct roles, each optimized for their use case.
 
-### Virtual orderbook for makers
+### Orderbook for makers
 
-Market makers connect directly to the Shadowbook matching engine and place virtual limit orders. These orders live off-chain — they are placed and cancelled instantly with no transaction fees and no on-chain footprint. This removes the cost barrier that prevents active market making on Cardano.
+Market makers connect directly to the Shadowbook matching engine and place limit orders. Orders are placed and cancelled instantly, removing the cost barrier that prevents active market making on Cardano.
 
-Since virtual orders cost nothing to maintain, makers can quote tighter spreads and update prices rapidly in response to market movements. This is impossible on constant product AMMs where liquidity sits passively on a bonding curve.
+Makers can quote tighter spreads and update prices rapidly in response to market movements. This is impossible on constant product AMMs where liquidity sits passively on a bonding curve.
 
 ### On-chain settlement for takers
 
@@ -40,7 +45,7 @@ By concentrating maker liquidity in a real orderbook rather than spreading it ac
 - **Tighter spreads** — makers quote competitive prices at specific levels instead of relying on a mathematical curve.
 - **Lower slippage** — aggregated depth at each price level means larger orders execute with less price impact.
 - **Faster price discovery** — makers can update quotes instantly in response to market movements, so prices reflect actual market conditions.
-- **Reduced cost for traders** — virtual orders eliminate the per-order on-chain cost for makers, and takers benefit from better execution quality.
+- **Reduced cost for traders** — the orderbook model eliminates the per-order overhead for makers, and takers benefit from better execution quality.
 
 ### Integration approach
 

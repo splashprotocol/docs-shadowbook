@@ -1,9 +1,10 @@
 ---
-title: Order refunds
-description: "How to cancel and refund on-chain orders on Shadowbook."
+title: Order cancel
+sidebarTitle: Cancel limit order
+description: "How to cancel on-chain orders on Shadowbook."
 ---
 
-Orders can be refunded (cancelled) by the user who created them. All ADA from the order — including collateral and execution fees — is returned to the user.
+Orders can be cancelled by the user who created them. All ADA from the order — including collateral and execution fees — is returned to the user.
 
 ## Contract reference
 
@@ -39,10 +40,10 @@ Use the same contract details from the [on-chain orders](/smart-contracts/on-cha
 
 **Outputs:**
 
-1. User's address with all funds from the refunded order (including collateral)
+1. User's address with all funds from the cancelled order (including collateral)
 2. User's change output (if any)
 
-## Refund flow
+## Cancel order flow
 
 <Steps>
   <Step title="Find order UTxO">
@@ -69,7 +70,7 @@ Use the same contract details from the [on-chain orders](/smart-contracts/on-cha
 ## Important notes
 
 <Note>
-Only the user who created the order can refund it — the transaction must be signed by the key corresponding to `cancelPkh`.
+Only the user who created the order can cancel it — the transaction must be signed by the key corresponding to `cancelPkh`.
 </Note>
 
 - All ADA from the order (including collateral and fees) is returned to the user

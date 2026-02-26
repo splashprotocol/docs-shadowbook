@@ -2,59 +2,64 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Shadowbook",
+  "description": "Shadowbook is a proprietary orderbook DEX on Cardano.",
   "colors": {
-    "primary": "#6D28D9",
-    "light": "#8B5CF6",
-    "dark": "#5B21B6"
+    "primary": "#3D538B",
+    "light": "#3D538B",
+    "dark": "#3D538B"
   },
   "favicon": "/favicon.svg",
+  "api": {
+    "mdx": {
+      "server": "https://api.shadowbook.io"
+    }
+  },
   "navigation": {
-    "tabs": [
+    "groups": [
       {
-        "tab": "Documentation",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "index"
-            ]
-          },
-          {
-            "group": "Smart contracts",
-            "pages": [
-              "smart-contracts/on-chain-orders",
-              "smart-contracts/datum-building",
-              "smart-contracts/refunds"
-            ]
-          }
+        "group": "Get Started",
+        "icon": "rocket",
+        "pages": [
+          "index",
+          "overview/orders"
         ]
       },
       {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "Market API",
-            "pages": [
-              "api-reference/overview",
-              "api-reference/order-book",
-              "api-reference/pair-list"
-            ]
-          }
+        "group": "API",
+        "pages": [
+          "api-docs/overview",
+          "api-docs/order-book",
+          "api-docs/pair-list"
+        ]
+      },
+      {
+        "group": "On-chain interactions",
+        "pages": [
+          "on-chain-interactions/datum-building",
+          "on-chain-interactions/limit-order",
+          "on-chain-interactions/market-order",
+          "on-chain-interactions/order-cancel"
         ]
       }
     ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/logo-light.svg",
+    "dark": "/logo/logo-dark.svg"
   },
+  
   "navbar": {
     "links": [
       {
-        "label": "DexHunter",
-        "href": "https://dexhunter.io"
+        "type": "discord",
+        "href": "https://discord.gg/example"
       }
-    ]
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Become maker",
+      "href": "https://shadowbook.io/maker"
+    }
   },
   "footer": {
     "socials": {
